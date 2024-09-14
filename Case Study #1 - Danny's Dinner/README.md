@@ -33,17 +33,18 @@ FROM sales
 GROUP BY sales.customer_id
 ORDER BY sales.customer_id ASC; 
 ```
-**Step:**
-- Use **JOIN** to merge `sales` and `menu` tables to extract information about customer_id and price from both tables.
-- Use **SUM** to calculate the total amount that each customer has spent at the restaurant.
+**Solution:**
+- Use **INNER JOIN** to merge the `sales` and `menu` tables to extract information about customer_id and price from both tables.
+- Use **SUM** to calculate the total money that each customer has spent at the restaurant.
 - Group the aggregate results by `sales.customer_id`.
 
-**Answer:**
+**Result:**
 |customer_id|total_sales|
 |---|---|
 |A|76|
 |B|74|
 |C|36|
+
 
 **2. How many days has each customer visited the restaurant?**
 ```sql
@@ -52,13 +53,18 @@ SELECT
     , COUNT(DISTINCT order_date) AS visit_count
 FROM sales
 GROUP BY customer_id
-ORDER BY customer_id;
+ORDER BY customer_id ASC;
 ```
-**Step:**
-- Use **COUNT DISTINCT** to determine the unique number of visits for each customer
-- Group aggregate results by `customer_id`
+**Solution:**
+- Use **COUNT DISTINCT** to determine the unique number of visits for each customer from the `sales` table.
+- Group the aggregate results by `customer_id`.
 
-**Answer:**
+**Result:**
+|customer_id|visit_count|
+|---|---|
+|A|4|
+|B|6|
+|C|2|
 
 
 **3. What was the first item from the menu purchased by each customer?**
@@ -70,7 +76,7 @@ WITH sales_order AS (
         , order_date
         , DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY order_date) AS item_rank
     FROM sales
-        LEFT JOIN menu ON sales.product_id = menu.product_id
+        INNER JOIN menu ON sales.product_id = menu.product_id
 )
 SELECT 
     customer_id
@@ -81,13 +87,19 @@ GROUP BY
     customer_id
     , product_name;
 ```
+**Solution:**
+- Create a Common Expression Table (CTE) name `sales_order`:
+  - Join the `sales` and `menu` tables together by **INNER JOIN** to get the product names.
+  - Use **DENSE_RANK()** to assign a sequential rank to each product for a given customer, based on `order_date`.
+- In the main query, select only the rows from the `sales_order` CTE where the `item_rank` is 1, indicating the first product purchased by each customer.
 
-**Step:**
-- Create a Common Expression Table (CTE) name `sales_order` to store the joined data and calculate rank for each product.
-- Within the CTE table, join the `sales` and `menu` tables to get product names and use **DENSE_RANK()** to assign a sequential rank to each product for a given customer, based on `order_date`.
-- The main query selects only the rows from the `sales_order` CTE where the `item_rank` is 1, indicating the first product purchased by each customer.
-
-**Answer:**
+**Result:**
+|customer_id|product_name|
+|---|---|
+|A|curry|
+|A|sushi|
+|B|curry|
+|C|ramen|
 
 
 **4. What is the most purchased item on the menu and how many times was it purchased by all customers?**
@@ -100,12 +112,14 @@ FROM sales
 GROUP BY product_name
 ORDER BY total_orders DESC;
 ```
-
-**Step:**
+**Solution:**
     - Perform **COUNT** on `product_id` column to calculate the total number of orders for each product and then sort the results in the descending order to ensure the most puchased item appears first.
     - Filter with **TOP 1** in **SELECT** clause to limit the result set to top row, which is the most purchased item.
 
-**Answer:**
+**Result:**
+|product_name|total_orders|
+|---|---|
+|ramen|8|
 
 
 **5. Which item was the most popular for each customer?**
