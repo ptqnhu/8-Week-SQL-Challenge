@@ -225,15 +225,22 @@ WHERE rank = 1
 ORDER BY p.customer_id;
 ```
 
-**Step:**
-- Create a CTE called `purchased_prior_member`.
-- In CTE, join `sales` with `members` table based on `customer_id` column, only including orders that occured *before* the date the customers join as a member (`sales.order_date < members.join_date`).
-- Also, create a rank column within the CTE to determine the first items based on the descending order of `order_date` for each customer.
-- Join `purchased_prior_member` with `menu` table to get the `product_name`.
-- Filter the result where rank equals 1 to get the name of the product that each customer bought before they became a member.
-- Sort the result by `customer_id` in ascending order.
+**Solution:**
+- Create a CTE called `purchased_prior_member`:
+  - Join the `sales` table with the `members` table based on the `customer_id` column, only including orders that occurred *before* the date the customers join as a member (`sales.order_date < members.join_date`).
+  - Create a rank column within the CTE to determine the first items based on the descending order of `order_date` for each customer.
+- In the main query:
+  - Join `purchased_prior_member` with the `menu` table to get the `product_name`.
+  - Filter the result where rank equals 1 to get the name of the product that each customer bought before they became a member.
+  - Sort the result by `customer_id` in ascending order.
 
-**Answer:**
+**Result:**
+|customer_id|product_name|
+|---|---|
+|A|sushi|
+|A|curry|
+|B|sushi|
+
 
 **8. What is the total items and amount spent for each member before they became a member?**
 ```sql
@@ -250,13 +257,18 @@ GROUP BY sales.customer_id
 ORDER BY sales.customer_id ASC;
 ```
 
-**Steps:**
-- Join three `sales`, `members`, and `menu` together to retrieve information about total product sold, and total amount of revenue for each customer *before* they became a member.
-- Use **COUNT** on `sales.product_id` column and **SUM** on `menu.price` column to calculate the total items purchased and total amount spent by each customer.
+**Solution:**
+- Join three `sales`, `members`, and `menu` together to retrieve information about the total product sold, and the total amount of revenue for each customer *before* they became a member.
+- Use **COUNT** on the `sales.product_id` column and **SUM** on the `menu. price column to calculate the total items purchased and the total amount spent by each customer.
 - Group the results by `sales.customer_id`.
 - Sort the results by `sales.customer_id` in ascending order.
 
-**Answer:**
+**Result:**
+|customer_id|total_items|total_sales|
+|---|---|---|
+|A|2|25|
+|B|3|40|
+
 
 **9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?**
 ```sql
@@ -280,14 +292,21 @@ FROM points_cte
 GROUP BY customer_id;
 ```
 
-**Step:**
-- Create a temporary result set to calculate points.
-- Use **CASE** expression to determine the points earned for each product:
+**Solution:**
+- Create a temporary result set (CTE) to calculate points:
+  - **JOIN** `sales` and `menu` table together to get the necessary information.
+  - Use **CASE** expression to determine the points earned for each product:
     - If the `product_id` is 1 (sushi), the points are doubled and multiplied by 10.
     - Otherwise, the points are simply multiplied by 10.
 - In the main query, the points are aggregated for each customer to get their total points.
 
-**Answer:**
+**Result:**
+|customer_id|total_points|
+|---|---|
+|A|860|
+|B|940|
+|C|360|
+
 
 **10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?**
 ```sql
@@ -321,22 +340,113 @@ WHERE order_date <= last_date_of_jan
 GROUP BY customer_id;
 ```
 
-**Step:**
+**Solution:**
 - Create a CTE called `dates_cte`:
-    - Join the `sales`, `members`, and `menu` tables to get the customer information, product details, and prices.
+    - Join the `sales`, `members`, and `menu` tables to get customer information, product details, and prices.
     - Calculate a `valid_date` (6 days after) for each customer to indicate the first week since their `join_date` and a `last_date_of_jan` constant for filtering later.
 - In the main query:
-    - Use **CASE** and **SUM** expression to calculate the total points for each customer.
+    - Use **CASE** and **SUM** expressions to calculate the total points for each customer.
     - Filter the results to include only orders before or on the `last_date_of_jan`.
-    - Group the results by `customer_id` to get the total points for each individual customer.
+    - Group the results by `customer_id` to get the total points for each customer.
 - Point calculation logic:
     - If the order_date is between the join_date and valid_date, the points are doubled and multiplied by 10.
     - If the order_date is after the valid_date and the product_id is 1, the points are doubled and multiplied by 10.
-    - Otherwise, the points are simply multiplied by 10.
+    - Otherwise, the points are multiplied by 10.
+
+**Result:**
+|customer_id|total_points|
+|---|---|
+|A|1020|
+|B|320|
 
 
+***
+## BONUS QUESTION
+**Join All The Things**
+**Recreate the table with: customer_id, order_date, product_name, price, member (Y/N)**
+```sql
+SELECT 
+    sales.customer_id
+    , sales.order_date
+    , menu.product_name
+    , menu.price
+    , CASE
+        WHEN members.join_date > sales.order_date THEN 'N'
+        WHEN members.join_date <= sales.order_date THEN 'Y'
+        ELSE 'N'
+    END AS member_status
+FROM sales
+    LEFT JOIN members
+        ON sales.customer_id = members.customer_id
+    INNER JOIN menu
+        ON sales.product_id = menu.product_id
+ORDER BY sales.customer_id ASC;
+```
+
+**Result:**
+|customer_id|order_date|product_name|price|member_status|
+|---|---|---|---|---|
+|A|2021-01-01|sushi|10|N|
+|A|2021-01-01|curry|15|N|
+|A|2021-01-07|curry|15|Y|
+|A|2021-01-10|ramen|12|Y|
+|A|2021-01-11|ramen|12|Y|
+|A|2021-01-11|ramen|12|Y|
+|B|2021-01-01|curry|15|N|
+|B|2021-01-02|curry|15|N|
+|B|2021-01-04|sushi|10|N|
+|B|2021-01-11|sushi|10|Y|
+|B|2021-01-16|ramen|12|Y|
+|B|2021-02-01|ramen|12|Y|
+|C|2021-01-01|ramen|12|N|
+|C|2021-01-01|ramen|12|N|
+|C|2021-01-07|ramen|12|N|
 
 
-**Answer:**
+**Rank All The Things**
+**Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.**
+```sql
+WITH customers_data AS (
+    SELECT 
+        sales.customer_id
+        , sales.order_date
+        , menu.product_name
+        , menu.price
+        , CASE
+            WHEN members.join_date > sales.order_date THEN 'N'
+            WHEN members.join_date <= sales.order_date THEN 'Y'
+            ELSE 'N'
+        END AS member_status
+    FROM sales
+        LEFT JOIN members
+            ON sales.customer_id = members.customer_id
+        INNER JOIN menu
+            ON sales.product_id = menu.product_id
+)
+SELECT 
+    *, 
+    CASE
+        WHEN member_status = 'N' then NULL
+        ELSE RANK() OVER (PARTITION BY customer_id, member_status ORDER BY order_date)
+    END AS ranking
+FROM customers_data;
+```
 
-
+**Result:**
+|customer_id|order_date|product_name|price|member_status|ranking|
+|---|---|---|---|---|---|
+|A|2021-01-01|sushi|10|N|NULL|
+|A|2021-01-01|curry|15|N|NULL|
+|A|2021-01-07|curry|15|Y|1|
+|A|2021-01-10|ramen|12|Y|2|
+|A|2021-01-11|ramen|12|Y|3|
+|A|2021-01-11|ramen|12|Y|3|
+|B|2021-01-01|curry|15|N|NULL|
+|B|2021-01-02|curry|15|N|NULL|
+|B|2021-01-04|sushi|10|N|NULL|
+|B|2021-01-11|sushi|10|Y|1|
+|B|2021-01-16|ramen|12|Y|2|
+|B|2021-02-01|ramen|12|Y|3|
+|C|2021-01-01|ramen|12|N|NULL|
+|C|2021-01-01|ramen|12|N|NULL|
+|C|2021-01-07|ramen|12|N|NULL|
