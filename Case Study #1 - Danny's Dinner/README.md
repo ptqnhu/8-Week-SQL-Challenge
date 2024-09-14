@@ -33,6 +33,7 @@ FROM sales
 GROUP BY sales.customer_id
 ORDER BY sales.customer_id ASC; 
 ```
+
 **Solution:**
 - Use **INNER JOIN** to merge the `sales` and `menu` tables to extract information about customer_id and price from both tables.
 - Use **SUM** to calculate the total money that each customer has spent at the restaurant.
@@ -55,6 +56,7 @@ FROM sales
 GROUP BY customer_id
 ORDER BY customer_id ASC;
 ```
+
 **Solution:**
 - Use **COUNT DISTINCT** to determine the unique number of visits for each customer from the `sales` table.
 - Group the aggregate results by `customer_id`.
@@ -87,6 +89,7 @@ GROUP BY
     customer_id
     , product_name;
 ```
+
 **Solution:**
 - Create a Common Expression Table (CTE) name `sales_order`:
   - Join the `sales` and `menu` tables together by **INNER JOIN** to get the product names.
@@ -112,6 +115,7 @@ FROM sales
 GROUP BY product_name
 ORDER BY total_orders DESC;
 ```
+
 **Solution:**
     - Perform **COUNT** on `product_id` column to calculate the total number of orders for each product and then sort the results in the descending order to ensure the most puchased item appears first.
     - Filter with **TOP 1** in **SELECT** clause to limit the result set to top row, which is the most purchased item.
@@ -144,12 +148,23 @@ FROM sales_order
 WHERE item_rank = 1;
 ```
 
-**Steps:**
-- Create CTE named `sales_order` to store information about customer_id, product_id, and their respective item counts.
-- In outer query, appropriate columns are selected and then joined with `menu` table to get the product name.
-- Finally, filter out the most frequently purchase item for each customer by selecting only the rows where `item_rank` equals 1.
+**Solution:**
+- Create a CTE named `sales_order`:
+  - Use **COUNT** to calculate the total number of orders for each item and each given customer.
+  - Perform **DENSE_RANK()** to find the most popular item ordered by each customer (**DENSE_RANK()** is used instead of **ROW_NUMBER()** in case there are two items with the same number of orders).
+- In the main query:
+  - Join with the `menu` table to get the product name.
+  - Select appropricate columns, such as `customer_id`, `product_name`, and `item_count`.
+  - Filter out the most frequently purchased item for each customer by selecting only the rows where `item_rank` equals 1.
 
-**Answer:**
+**Result:**
+|customer_id|product_name|item_count|
+|---|---|---|
+|A|ramen|3|
+|B|sushi|2|
+|B|curry|2|
+|B|ramen|2|
+|C|ramen|3|
 
 
 **6. Which item was purchased first by the customer after they became a member?**
@@ -166,7 +181,7 @@ WITH joined_as_member AS (
             ON sales.customer_id = members.customer_id AND order_date >= join_date
 )
 SELECT
-    joined_as_member.customer_id
+    customer_id
     , product_name
 FROM joined_as_member
     INNER JOIN menu ON joined_as_member.product_id = menu.product_id
@@ -176,12 +191,17 @@ GROUP BY
     , product_name;
 ```
 
-**Step:**
-- Create a CTE to tempotarily store information about customers and their order history after they became a member, in this case is the information of customer A and customer B.
-- Within the CTE, use window function **DENSE_RANK()** to assign ranking for the first item purchased by each customer.
-- In the `WHERE` clause, filter to retrieve only the rows equals 1, indicating the first row within each customer partition.
+**Solution:**
+- Create a CTE named `joined_as_member`:
+  - Use **INNER JOIN** to merge `sales` and `members` tables to get the information about customers and their order history after they became a member (in this case is the information of only customer A and customer B).
+  - Use **DENSE_RANK()** to assign ranking for the first item purchased by each customer.
+- In the main query, filter to retrieve only the rows equals 1, indicating the first row within each customer partition.
 
-**Answer:**
+**Result:**
+|customer_id|product_name|
+|---|---|
+|A|curry|
+|B|sushi|
 
 
 **7. Which item was purchased just before the customer became a member?**
