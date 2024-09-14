@@ -19,7 +19,7 @@ Danny has shared 3 key datasets to help you write SQL queries that can answer hi
 
 ***
 ## Entity Relationship Diagram
-![Danny's Diner](https://github.com/user-attachments/assets/d27c0912-d125-4c29-9f78-0a74acffa6ff)
+![Danny's Diner](https://github.com/user-attachments/assets/2f4fa55a-a94d-407b-bc57-60420da06947)
 
 ***
 ## Question and Solution
