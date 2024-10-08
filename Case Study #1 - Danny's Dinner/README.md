@@ -6,7 +6,7 @@
 - [Entity Relationship Diagram](#entity_relationship_diagram)
 - [Question and Solution](#question_and_solution)
 
-Please note that all the information about the case study was obtain from the following source: [Case Study #1: Danny's Dinner](https://8weeksqlchallenge.com/case-study-1/)
+Please note that all the information about the case study was obtained from the following source: [Case Study #1: Danny's Dinner](https://8weeksqlchallenge.com/case-study-1/)
 
 ***
 ## Problem Statement
