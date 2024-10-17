@@ -28,10 +28,10 @@ Danny has shared 3 key datasets to help you write SQL queries that can answer hi
 SELECT 
   sales.customer_id
   , SUM(menu.price) AS total_sales
-FROM sales
-    INNER JOIN menu ON sales.product_id = menu.product_id
+FROM dannys_dinner.sales
+    INNER JOIN dannys_dinner.menu ON sales.product_id = menu.product_id
 GROUP BY sales.customer_id
-ORDER BY sales.customer_id ASC; 
+ORDER BY sales.customer_id ASC;
 ```
 
 **Solution:**
@@ -52,7 +52,7 @@ ORDER BY sales.customer_id ASC;
 SELECT
     customer_id
     , COUNT(DISTINCT order_date) AS visit_count
-FROM sales
+FROM dannys_dinner.sales
 GROUP BY customer_id
 ORDER BY customer_id ASC;
 ```
@@ -77,8 +77,8 @@ WITH sales_order AS (
         , product_name
         , order_date
         , DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY order_date) AS item_rank
-    FROM sales
-        INNER JOIN menu ON sales.product_id = menu.product_id
+    FROM dannys_dinner.sales
+        INNER JOIN dannys_dinner.menu ON sales.product_id = menu.product_id
 )
 SELECT 
     customer_id
@@ -110,8 +110,8 @@ GROUP BY
 SELECT TOP 1
     product_name
     , COUNT(sales.product_id) AS total_orders
-FROM sales
-    LEFT JOIN menu ON sales.product_id = menu.product_id
+FROM dannys_dinner.sales
+    LEFT JOIN dannys_dinner.menu ON sales.product_id = menu.product_id
 GROUP BY product_name
 ORDER BY total_orders DESC;
 ```
@@ -134,7 +134,7 @@ WITH sales_order AS (
         , product_id
         , COUNT(product_id) AS item_count
         , DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY COUNT(product_id) DESC) AS item_rank
-    FROM sales
+    FROM dannys_dinner.sales
     GROUP BY
         customer_id
         , product_id
@@ -144,7 +144,7 @@ SELECT
     , product_name
     , item_count
 FROM sales_order
-    INNER JOIN menu ON sales_order.product_id = menu.product_id
+    INNER JOIN dannys_dinner.menu ON sales_order.product_id = menu.product_id
 WHERE item_rank = 1;
 ```
 
@@ -176,15 +176,15 @@ WITH joined_as_member AS (
         , order_date
         , join_date
         , DENSE_RANK() OVER (PARTITION BY sales.customer_id ORDER BY order_date ASC) AS rank
-    FROM sales
-        INNER JOIN members
+    FROM dannys_dinner.sales
+        INNER JOIN dannys_dinner.members
             ON sales.customer_id = members.customer_id AND order_date >= join_date
 )
 SELECT
     customer_id
     , product_name
 FROM joined_as_member
-    INNER JOIN menu ON joined_as_member.product_id = menu.product_id
+    INNER JOIN dannys_dinner.menu ON joined_as_member.product_id = menu.product_id
 WHERE rank = 1
 GROUP BY
     customer_id
@@ -212,15 +212,15 @@ WITH purchased_prior_member AS (
         , sales.product_id
         , order_date
         , DENSE_RANK() OVER (PARTITION BY sales.customer_id ORDER BY order_date DESC) AS rank
-    FROM sales
-        INNER JOIN members
+    FROM dannys_dinner.sales
+        INNER JOIN dannys_dinner.members
             ON sales.customer_id = members.customer_id AND sales.order_date < members.join_date
 )
 SELECT 
     p.customer_id
     , menu.product_name
 FROM purchased_prior_member AS p
-    INNER JOIN menu ON p.product_id = menu.product_id
+    INNER JOIN dannys_dinner.menu ON p.product_id = menu.product_id
 WHERE rank = 1
 ORDER BY p.customer_id;
 ```
@@ -248,10 +248,10 @@ SELECT
     sales.customer_id
     , COUNT(sales.product_id) AS total_items
     , SUM(menu.price) AS total_sales
-FROM sales
-    INNER JOIN members 
+FROM dannys_dinner.sales
+    INNER JOIN dannys_dinner.members 
         ON sales.customer_id = members.customer_id AND sales.order_date < members.join_date
-    INNER JOIN menu
+    INNER JOIN dannys_dinner.menu
         ON sales.product_id = menu.product_id
 GROUP BY sales.customer_id
 ORDER BY sales.customer_id ASC;
@@ -282,8 +282,8 @@ WITH points_cte AS (
             WHEN sales.product_id = 1 THEN price * 2 * 10
             ELSE price * 10
         END AS points
-    FROM sales
-        INNER JOIN menu ON sales.product_id = menu.product_id
+    FROM dannys_dinner.sales
+        INNER JOIN dannys_dinner.menu ON sales.product_id = menu.product_id
 )
 SELECT
     customer_id
@@ -320,10 +320,10 @@ WITH dates_cte AS (
         , price
         , DATEADD(DAY, 6, join_date) AS valid_date
         , EOMONTH('2021-01-01') AS last_date_of_jan
-    FROM sales
-        INNER JOIN members
+    FROM dannys_dinner.sales
+        INNER JOIN dannys_dinner.members
             ON sales.customer_id = members.customer_id AND sales.order_date >= members.join_date
-        INNER JOIN menu
+        INNER JOIN dannys_dinner.menu
             ON sales.product_id = menu.product_id
 )
 SELECT
@@ -376,10 +376,10 @@ SELECT
         WHEN members.join_date <= sales.order_date THEN 'Y'
         ELSE 'N'
     END AS member_status
-FROM sales
-    LEFT JOIN members
+FROM dannys_dinner.sales
+    LEFT JOIN dannys_dinner.members
         ON sales.customer_id = members.customer_id
-    INNER JOIN menu
+    INNER JOIN dannys_dinner.menu
         ON sales.product_id = menu.product_id
 ORDER BY sales.customer_id ASC;
 ```
@@ -419,10 +419,10 @@ WITH customers_data AS (
             WHEN members.join_date <= sales.order_date THEN 'Y'
             ELSE 'N'
         END AS member_status
-    FROM sales
-        LEFT JOIN members
+    FROM dannys_dinner.sales
+        LEFT JOIN dannys_dinner.members
             ON sales.customer_id = members.customer_id
-        INNER JOIN menu
+        INNER JOIN dannys_dinner.menu
             ON sales.product_id = menu.product_id
 )
 SELECT 
