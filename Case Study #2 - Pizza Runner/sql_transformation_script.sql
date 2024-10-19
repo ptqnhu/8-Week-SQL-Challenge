@@ -11,7 +11,7 @@ SELECT
         ELSE extras
     END AS extras
     , order_time
-INTO #customer_orders
+INTO ##customer_orders
 FROM pizza_runner.customer_orders
 ;
 
@@ -42,6 +42,6 @@ SELECT
         WHEN cancellation LIKE '' OR cancellation LIKE 'null' THEN NULL
         ELSE cancellation
     END AS cancelltion
-INTO #runner_orders
+INTO ##runner_orders
 FROM pizza_runner.runner_orders
 ;
