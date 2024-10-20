@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS ##customer_orders;
 SELECT
     order_id
     , customer_id
@@ -15,7 +16,7 @@ INTO ##customer_orders
 FROM pizza_runner.customer_orders
 ;
 
-
+DROP TABLE IF EXISTS ##runner_orders;
 SELECT
     order_id
     , runner_id
@@ -41,7 +42,16 @@ SELECT
     , CASE
         WHEN cancellation LIKE '' OR cancellation LIKE 'null' THEN NULL
         ELSE cancellation
-    END AS cancelltion
+    END AS cancellation
 INTO ##runner_orders
 FROM pizza_runner.runner_orders
 ;
+
+ALTER TABLE ##runner_orders 
+ALTER COLUMN pickup_time DATETIME;
+
+ALTER TABLE ##runner_orders 
+ALTER COLUMN distance FLOAT;
+
+ALTER TABLE ##runner_orders 
+ALTER COLUMN duration INT;
